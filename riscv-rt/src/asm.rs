@@ -95,19 +95,22 @@ cfg_global_asm!(
     "csrr t2, mhartid",
     "lui t0, %hi(_max_hart_id)
     add t0, t0, %lo(_max_hart_id)
-    bgtu t2, t0, abort
+    bleu t2, t0, 1f
+    la t0, abort
+    jalr x0, 0(t0)
+1:
     lui t0, %hi(_hart_stack_size)
     add t0, t0, %lo(_hart_stack_size)",
     #[cfg(riscvm)]
     "mul t0, t2, t0",
     #[cfg(not(riscvm))]
-    "beqz t2, 2f  // skip if hart ID is 0
+    "beqz t2, 3f  // skip if hart ID is 0
     mv t1, t0
-1:
+2:
     add t0, t0, t1
     addi t2, t2, -1
-    bnez t2, 1b
-2:  ",
+    bnez t2, 2b
+3:  ",
 );
 cfg_global_asm!(
     "la t1, _stack_start",
